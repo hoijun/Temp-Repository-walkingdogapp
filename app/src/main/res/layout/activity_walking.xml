@@ -90,18 +90,37 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/img_pencil" />
 
+            <View
+                android:id="@+id/view8"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintWidth_percent="0.15"
+                app:layout_constraintHeight_percent="0.2"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/view7" />
+
             <TextView
                 android:id="@+id/Info_distance"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:gravity="center|start"
-                android:text="거리:     0m"
+                android:text="거리: 0.0"
                 android:textSize="18sp"
-                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHeight_percent="0.1"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintStart_toEndOf="@id/view8"
                 app:layout_constraintTop_toBottomOf="@+id/view7"
-                app:layout_constraintWidth_percent="0.7" />
+                app:layout_constraintWidth_percent="0.5" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:gravity="center|start"
+                android:text="(Km)"
+                android:textSize="18sp"
+                app:layout_constraintHeight_percent="0.1"
+                app:layout_constraintStart_toEndOf="@id/Info_distance"
+                app:layout_constraintTop_toBottomOf="@+id/view7"
+                app:layout_constraintWidth_percent="0.3"/>
 
             <TextView
                 android:id="@+id/Info_time"
@@ -110,9 +129,8 @@
                 android:gravity="center|start"
                 android:text="시간: 00:00"
                 android:textSize="18sp"
-                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHeight_percent="0.1"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintStart_toEndOf="@id/view8"
                 app:layout_constraintTop_toBottomOf="@+id/Info_distance"
                 app:layout_constraintWidth_percent="0.7" />
 

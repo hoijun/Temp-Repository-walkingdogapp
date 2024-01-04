@@ -137,7 +137,7 @@ class WalkingActivity : AppCompatActivity(), OnMapReadyCallback {
                     trackingPath.coords = coordList // 이동 경로 그림
                     trackingPath.map = mynavermap
                     binding.InfoDistance.text = getString(R.string.totaldistance,
-                        WalkingService.totalDistance.toInt(),"m")
+                        WalkingService.totalDistance / 1000.0)
                 }
             }
         }

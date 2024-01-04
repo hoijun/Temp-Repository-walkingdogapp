@@ -9,6 +9,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.os.Looper
@@ -147,7 +148,7 @@ class WalkingService : Service() {
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
         { return }
 
-        locationRequest = LocationRequest.Builder(0)
+        locationRequest = LocationRequest.Builder(2500)
             .setMinUpdateIntervalMillis(2500)
             .setMaxUpdateDelayMillis(2500)
             .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
@@ -158,7 +159,11 @@ class WalkingService : Service() {
             Looper.getMainLooper())
 
         isTracking.postValue(true)
-        startForeground(Constant.Walking_SERVICE_ID, builder.build())
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            startForeground(Constant.Walking_SERVICE_ID, builder.build())
+        } else {
+            startForeground(Constant.Walking_SERVICE_ID, builder.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
+        }
     }
 
     @SuppressLint("MissingPermission")
