@@ -141,6 +141,12 @@ class WalkingActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
             }
         }
+
+        WalkingService.walkTime.observe(this) {
+            val minutes = it / 60
+            val seconds = it % 60
+            binding.InfoTime.text = getString(R.string.totaltime, minutes, seconds)
+        }
     }
 
     private fun isWalkingServiceRunning(): Boolean {

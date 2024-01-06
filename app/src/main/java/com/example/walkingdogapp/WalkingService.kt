@@ -2,7 +2,6 @@ package com.example.walkingdogapp
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -24,26 +23,32 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.naver.maps.geometry.LatLng
+import java.util.Timer
+import kotlin.concurrent.timer
 
 
 class WalkingService : Service() {
     private lateinit var locationRequest: LocationRequest
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var builder : NotificationCompat.Builder
+    private lateinit var walkTimer: Timer
     private var miscount = 0
+    private var totalTime = 0
 
     companion object {
         val coordList = MutableLiveData<MutableList<LatLng>>()
         val isTracking = MutableLiveData<Boolean>()
+        val walkTime = MutableLiveData<Int>()
         var totalDistance = 0f
-        var totalTime = 0
     }
 
     private fun postInitialValue() {
-        coordList.postValue(mutableListOf())
         isTracking.postValue(false)
-        totalDistance = 0f
+        walkTime.postValue(0)
+        coordList.postValue(mutableListOf())
         totalTime = 0
+        miscount = 0
+        totalDistance = 0f
     }
 
     // 위치 업데이트
@@ -130,7 +135,8 @@ class WalkingService : Service() {
         builder.setContentText("산책중 이에요.")
         builder.setContentIntent(pendingIntent)
         builder.setAutoCancel(false)
-        builder.priority = NotificationCompat.PRIORITY_MAX
+        builder.setOngoing(true)
+        builder.priority = NotificationCompat.PRIORITY_DEFAULT
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (notificationManager.getNotificationChannel(channelId) == null) {
@@ -159,16 +165,20 @@ class WalkingService : Service() {
             Looper.getMainLooper())
 
         isTracking.postValue(true)
+
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             startForeground(Constant.Walking_SERVICE_ID, builder.build())
         } else {
             startForeground(Constant.Walking_SERVICE_ID, builder.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
         }
+
+        startTimer()
     }
 
     @SuppressLint("MissingPermission")
     private fun startTracking() {
         isTracking.postValue(true)
+        startTimer()
         fusedLocationProviderClient.requestLocationUpdates(locationRequest,
             locationCallback,
             Looper.getMainLooper()) // 위치 업데이트 재개
@@ -177,15 +187,29 @@ class WalkingService : Service() {
 
     private fun stopTracking() {
         isTracking.postValue(false)
+        stopTimer()
         fusedLocationProviderClient.removeLocationUpdates(locationCallback) // 위치 업데이트 중단
         Log.d("current coord", "Stop Tracking")
     }
 
     private fun stopLocationService() {
         isTracking.postValue(false)
+        stopTimer()
         fusedLocationProviderClient.removeLocationUpdates(locationCallback)
         postInitialValue()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
+    }
+
+    private fun startTimer() {
+        walkTimer = timer(initialDelay = 500, period = 1000) {
+            totalTime++
+            walkTime.postValue(totalTime)
+            Log.d("walktime", totalTime.toString())
+        }
+    }
+
+    private fun stopTimer() {
+        walkTimer.cancel()
     }
 }
