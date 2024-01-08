@@ -2,15 +2,23 @@ package com.example.walkingdogapp
 
 import android.app.ActivityManager
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
+import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.PointF
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
+import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.walkingdogapp.databinding.ActivityWalkingBinding
 import com.naver.maps.geometry.LatLng
@@ -23,6 +31,7 @@ import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.OverlayImage
 import com.naver.maps.map.overlay.PathOverlay
 
+
 class WalkingActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var binding: ActivityWalkingBinding
     private lateinit var mynavermap: NaverMap
@@ -33,6 +42,9 @@ class WalkingActivity : AppCompatActivity(), OnMapReadyCallback {
     private var trackingMarker = Marker()
     private var trackingPath = PathOverlay()
     private lateinit var trackingCamera : CameraUpdate
+
+    private val cameraPermission = arrayOf(android.Manifest.permission.CAMERA)
+    private val camera_Code = 98
 
     // 뒤로 가기
     private val BackPressCallback = object : OnBackPressedCallback(true) {
@@ -83,12 +95,12 @@ class WalkingActivity : AppCompatActivity(), OnMapReadyCallback {
         
         // 버튼 이벤트 설정
         binding.apply {
-            btnBack.setOnClickListener{
+            btnBack.setOnClickListener {
                 stopWalkingService()
                 goHome()
             }
 
-            btnStart.setOnClickListener{
+            btnStart.setOnClickListener {
                 if (isWalkingServiceRunning()) {
                     if(isTracking) {
                         stopTracking()
@@ -97,6 +109,10 @@ class WalkingActivity : AppCompatActivity(), OnMapReadyCallback {
                         startTracking()
                     }
                 }
+            }
+
+            btnCamera.setOnClickListener {
+                startCamera()
             }
         }
     }
@@ -196,5 +212,57 @@ class WalkingActivity : AppCompatActivity(), OnMapReadyCallback {
         val backIntent = Intent(this@WalkingActivity, MainActivity::class.java)
         startActivity(backIntent)
         finish()
+    }
+
+    private fun startCamera() {
+        if(checkPermission(cameraPermission)) {
+            val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            startActivityForResult(cameraIntent, camera_Code)
+        }
+    }
+
+    private fun checkPermission(permissions : Array<out String>) : Boolean{
+        for (permission in permissions) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    permission
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(this, permissions, camera_Code)
+                return false
+            }
+        }
+        return true
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        when (requestCode) {
+            camera_Code -> {
+                if (grantResults.isNotEmpty() && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    val builder = AlertDialog.Builder(this)
+                    builder.setTitle("촬영을 위해 권한을 \n허용으로 해주세요!")
+                    val listener = DialogInterface.OnClickListener { _, ans ->
+                        when (ans) {
+                            DialogInterface.BUTTON_POSITIVE -> {
+                                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                intent.flags = FLAG_ACTIVITY_NEW_TASK
+                                intent.data = Uri.fromParts("package", packageName, null)
+                                startActivity(intent)
+                            }
+                        }
+                    }
+                    builder.setPositiveButton("네", listener)
+                    builder.setNegativeButton("아니오", null)
+                    builder.show()
+                } else {
+                    startCamera()
+                }
+            }
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 }

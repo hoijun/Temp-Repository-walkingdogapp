@@ -5,8 +5,10 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,11 +25,13 @@ class HomeFragment : Fragment() {
     private val binding get() = _binding!!
     private val myViewModel: LocateInfoViewModel by activityViewModels()
 
+
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ActivityCompat.requestPermissions(requireActivity(), arrayOf(Manifest.permission.POST_NOTIFICATIONS), 999)
     }
+
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreateView(
@@ -45,6 +49,25 @@ class HomeFragment : Fragment() {
 
         // 산책 시작
         binding.btnWalk.setOnClickListener {
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                val builder = AlertDialog.Builder(requireContext())
+                builder.setTitle("산책을 위해 위치 권한을 \n항상 허용으로 해주세요!")
+                val listener = DialogInterface.OnClickListener { _, ans ->
+                    when (ans) {
+                        DialogInterface.BUTTON_POSITIVE -> {
+                            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                            intent.data = Uri.fromParts("package", requireContext().packageName, null)
+                            startActivity(intent)
+                        }
+                    }
+                }
+                builder.setPositiveButton("네", listener)
+                builder.setNegativeButton("아니오", null)
+                builder.show()
+                return@setOnClickListener
+            }
             if (ContextCompat.checkSelfPermission(
                     requireContext(),
                     Manifest.permission.ACCESS_BACKGROUND_LOCATION
@@ -55,9 +78,9 @@ class HomeFragment : Fragment() {
                 startActivity(intent)
             } else {
                 val builder = AlertDialog.Builder(requireContext())
-                builder.setTitle("산책을 하기위해 위치 권한을 \n항상 허용으로 해주세요!")
-                val listener = DialogInterface.OnClickListener { _, p1 ->
-                    when (p1) {
+                builder.setTitle("산책을 하기 위해 위치 권한을 \n항상 허용으로 해주세요!")
+                val listener = DialogInterface.OnClickListener { _, ans ->
+                    when (ans) {
                         DialogInterface.BUTTON_POSITIVE -> {
                             ActivityCompat.requestPermissions(
                                 requireActivity(),

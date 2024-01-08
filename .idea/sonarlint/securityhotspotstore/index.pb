@@ -32,3 +32,5 @@ Bapp/src/main/java/com/example/walkingdogapp/LocateInfoViewModel.kt,a\e\ae5d0b7
 build.gradle.kts,d\b\dbcff70658daf80b53ce624f6adcaa529df5ed8d
 9
 	README.md,8\e\8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d
+m
+=app/src/main/java/com/example/walkingdogapp/MyPageFragment.kt,2\4\244a6ead9da467cffebc916ea6743ecf38e1e118
